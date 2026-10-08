@@ -1,1 +1,7 @@
 .worktrees/
+node_modules/
+build/
+dist/
+alice-yandexgpt-skill.zip
+.env
+coverage/
