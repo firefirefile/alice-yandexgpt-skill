@@ -1,5 +1,5 @@
 {
-  "name": "alice-yandexgpt-skill",
+  "name": "alice-mock-skill",
   "version": "0.1.0",
   "private": true,
   "type": "commonjs",
@@ -7,10 +7,11 @@
     "node": ">=22"
   },
   "scripts": {
+    "clean": "node -e \"const fs=require('node:fs'); for (const path of ['build','dist']) fs.rmSync(path,{recursive:true,force:true})\"",
     "typecheck": "tsc --noEmit",
-    "build": "tsc -p tsconfig.build.json",
-    "test": "tsc && node --test build/tests/*.test.js",
-    "package": "npm run build && cd dist && zip -r -FS ../alice-yandexgpt-skill.zip ."
+    "build": "npm run clean && tsc -p tsconfig.build.json",
+    "test": "npm run clean && tsc && node --test build/tests/*.test.js",
+    "package": "npm run build && cd dist && zip -r -FS ../alice-mock-skill.zip ."
   },
   "devDependencies": {
     "@types/node": "^26.6.4",
