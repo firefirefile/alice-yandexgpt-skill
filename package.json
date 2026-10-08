@@ -1,0 +1,19 @@
+{
+  "name": "alice-yandexgpt-skill",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.build.json",
+    "test": "tsc && node --test build/tests/*.test.js",
+    "package": "npm run build && cd dist && zip -r -FS ../alice-yandexgpt-skill.zip ."
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.4",
+    "typescript": "^7.0.2"
+  }
+}
