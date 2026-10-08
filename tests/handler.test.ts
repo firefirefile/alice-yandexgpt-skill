@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { createHandler, handler as productionHandler, type GenerateReply } from "../src/index";
+import {
+  createHandler,
+  handler as productionHandler,
+  type FunctionContext,
+  type GenerateReply,
+} from "../src/index";
 import { LlmError, type LlmMessage } from "../src/yandex-gpt";
 
 function createUnusedGenerator(): {
@@ -111,6 +116,58 @@ test("production handler returns ping without environment configuration", async 
   );
 
   assert.equal(result.response.text, "pong");
+});
+
+test("production handler extracts IAM token object and prefers it over API key", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalFolderId = process.env.YANDEX_FOLDER_ID;
+  const originalApiKey = process.env.YANDEX_API_KEY;
+  let authorization = "";
+  globalThis.fetch = async (_input, init = {}) => {
+    authorization = (init.headers as Record<string, string>).Authorization;
+    return new Response(
+      JSON.stringify({
+        result: {
+          alternatives: [
+            {
+              message: { role: "assistant", text: "ответ из модели" },
+              status: "ALTERNATIVE_STATUS_FINAL",
+            },
+          ],
+        },
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } },
+    );
+  };
+  process.env.YANDEX_FOLDER_ID = "folder-id";
+  process.env.YANDEX_API_KEY = "api-secret";
+
+  try {
+    const context = {
+      token: {
+        access_token: "context-iam-token",
+        expires_in: 3600,
+        token_type: "Bearer",
+      },
+    } as unknown as FunctionContext;
+    const result = await productionHandler(
+      {
+        request: { type: "SimpleUtterance", command: "привет" },
+        session: { new: true, session_id: "production-session" },
+        version: "1.0",
+      },
+      context,
+    );
+
+    assert.equal(result.response.text, "ответ из модели");
+    assert.equal(authorization, "Bearer context-iam-token");
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalFolderId === undefined) delete process.env.YANDEX_FOLDER_ID;
+    else process.env.YANDEX_FOLDER_ID = originalFolderId;
+    if (originalApiKey === undefined) delete process.env.YANDEX_API_KEY;
+    else process.env.YANDEX_API_KEY = originalApiKey;
+  }
 });
 
 test("sends system history and current user messages", async () => {

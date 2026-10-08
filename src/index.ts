@@ -14,7 +14,11 @@ import { SYSTEM_PROMPT } from "./system-prompt";
 import { generateCompletion, LlmError, type LlmMessage } from "./yandex-gpt";
 
 export interface FunctionContext {
-  token?: string;
+  token?: {
+    access_token: string;
+    expires_in: number;
+    token_type: string;
+  };
 }
 
 export interface Logger {
@@ -123,7 +127,7 @@ export const handler = createHandler({
   generateReply: async (messages, context) =>
     await generateCompletion(messages, {
       config: loadConfig(process.env),
-      iamToken: context.token,
+      iamToken: context.token?.access_token,
     }),
   logger: {
     info: (message, details) => console.info(message, details),
