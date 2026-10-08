@@ -9,7 +9,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "build": "tsc -p tsconfig.build.json",
-    "test": "tsc && node --test build/tests/*.test.js"
+    "test": "tsc && node --test build/tests/*.test.js",
+    "package": "npm run build && cd dist && zip -r -FS ../alice-yandexgpt-skill.zip ."
   },
   "devDependencies": {
     "@types/node": "^26.6.4",
